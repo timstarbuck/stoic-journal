@@ -4,6 +4,7 @@ import { pgTable, uuid, varchar, text, timestamp } from "drizzle-orm/pg-core";
 export const usersTable = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

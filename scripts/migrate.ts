@@ -1,7 +1,11 @@
+import dotenv from "dotenv";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 import * as schema from "@/db/schema";
+
+// Load environment from .env.local so migrations can run locally
+dotenv.config({ path: ".env.local" });
 
 const runMigrations = async () => {
   const pool = new Pool({
@@ -18,6 +22,7 @@ const runMigrations = async () => {
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
       );
 
@@ -35,6 +40,9 @@ const runMigrations = async () => {
         author VARCHAR(255) NOT NULL,
         category VARCHAR(10) NOT NULL CHECK (category IN ('morning', 'evening'))
       );
+
+      -- Ensure existing installations get the new column when migrating
+      ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
     `);
 
     console.log("✓ Tables created successfully");

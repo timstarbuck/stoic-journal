@@ -112,16 +112,13 @@ export async function getJournalEntries() {
  */
 export async function ensureAuthenticatedUser() {
   try {
-    console.log('Starting ensureAuthenticatedUser');
+
     const { data: session } = await auth.getSession();
-   console.log('Session data:', session);
 
     if (!session?.user) {
       console.warn("No authenticated user found");
       return false;
     }
-
-    console.log('ensureAuthenticatedUser', session.user)
 
     const userId = session.user.id;
     const existingUser = await db
@@ -133,8 +130,18 @@ export async function ensureAuthenticatedUser() {
       await db.insert(usersTable).values({
         id: userId as any,
         name: session.user.name || session.user.email || "User",
+        email: session.user.email ?? null,
         createdAt: new Date(),
       });
+    } else {
+      // If the user exists but the email field is not set, populate it from the auth session
+      const user = existingUser[0] as any;
+      if ((!user.email || user.email === "") && session.user.email) {
+        await db
+          .update(usersTable)
+          .set({ email: session.user.email })
+          .where(eq(usersTable.id, userId as any));
+      }
     }
 
     return true;
