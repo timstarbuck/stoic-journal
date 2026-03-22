@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getRandomQuote, saveJournalEntry, ensureDefaultUser } from "@/app/actions";
+import { getRandomQuote, saveJournalEntry, ensureAuthenticatedUser } from "@/app/actions";
 import type { StoicQuote } from "@/db/schema";
 import Link from "next/link";
 
@@ -20,14 +20,15 @@ export default function MorningReflection() {
   useEffect(() => {
     const initPage = async () => {
       try {
-        // Ensure default user exists
-        await ensureDefaultUser();
+        // Ensure authenticated user exists in database
+        await ensureAuthenticatedUser();
         
         // Fetch a random morning quote
         const randomQuote = await getRandomQuote("morning");
         setQuote(randomQuote);
         setLoading(false);
       } catch (err) {
+        console.log(err)
         setError("Failed to load quote");
         setLoading(false);
       }

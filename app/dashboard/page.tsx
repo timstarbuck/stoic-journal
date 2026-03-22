@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getJournalEntries, ensureDefaultUser } from "@/app/actions";
+import { getJournalEntries, ensureAuthenticatedUser } from "@/app/actions";
 import type { JournalEntry } from "@/db/schema";
 import Link from "next/link";
 
@@ -20,8 +20,8 @@ export default function Dashboard() {
   useEffect(() => {
     const loadEntries = async () => {
       try {
-        // Ensure default user exists
-        await ensureDefaultUser();
+        // Ensure authenticated user exists in database
+        await ensureAuthenticatedUser();
         
         const allEntries = await getJournalEntries();
         setEntries(allEntries.reverse()); // Show newest first

@@ -1,10 +1,29 @@
 "use server";
 
+
 import { db } from "@/db";
 import { stoicQuotesTable, journalEntriesTable, usersTable } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { auth } from "@/lib/auth/server";
+
 
 const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || "1";
+
+/**
+ * Get the authenticated user's ID from Neon Auth session
+ */
+async function getAuthenticatedUserId(): Promise<string> {
+  try {
+    const { data: session } = await auth.getSession();
+    if (session?.user?.id) {
+      return session.user.id;
+    }
+  } catch (error) {
+    console.warn("Failed to get authenticated user ID:", error);
+  }
+  // Fallback to default user ID if auth fails
+  return DEFAULT_USER_ID;
+}
 
 /**
  * Get a random stoic quote by category
@@ -28,18 +47,17 @@ export async function getRandomQuote(category: "morning" | "evening") {
 }
 
 /**
- * Save a journal entry
+ * Save a journal entry for the authenticated user
  */
 export async function saveJournalEntry(
   type: "morning" | "evening",
-  content: string,
-  userId?: string | number
+  content: string
 ) {
   try {
-    const actualUserId = userId || DEFAULT_USER_ID;
+    const userId = await getAuthenticatedUserId();
 
     const result = await db.insert(journalEntriesTable).values({
-      userId: actualUserId as any,
+      userId: userId as any,
       type,
       content,
       createdAt: new Date(),
@@ -53,16 +71,16 @@ export async function saveJournalEntry(
 }
 
 /**
- * Get all journal entries grouped by date
+ * Get all journal entries for the authenticated user, grouped by date
  */
-export async function getJournalEntries(userId?: string | number) {
+export async function getJournalEntries() {
   try {
-    const actualUserId = userId || DEFAULT_USER_ID;
+    const userId = await getAuthenticatedUserId();
 
     const entries = await db
       .select()
       .from(journalEntriesTable)
-      .where(eq(journalEntriesTable.userId, actualUserId as any))
+      .where(eq(journalEntriesTable.userId, userId as any))
       .orderBy((t) => t.createdAt);
 
     // Group by date
@@ -89,7 +107,45 @@ export async function getJournalEntries(userId?: string | number) {
 }
 
 /**
- * Ensure default user exists
+ * Ensure the authenticated user exists in the database
+ * (Neon Auth creates users, but we may need to store them in our users table)
+ */
+export async function ensureAuthenticatedUser() {
+  try {
+    console.log('Starting ensureAuthenticatedUser');
+    const { data: session } = await auth.getSession();
+   console.log('Session data:', session);
+
+    if (!session?.user) {
+      console.warn("No authenticated user found");
+      return false;
+    }
+
+    console.log('ensureAuthenticatedUser', session.user)
+
+    const userId = session.user.id;
+    const existingUser = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, userId as any));
+
+    if (existingUser.length === 0) {
+      await db.insert(usersTable).values({
+        id: userId as any,
+        name: session.user.name || session.user.email || "User",
+        createdAt: new Date(),
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error ensuring authenticated user:", error);
+    return false;
+  }
+}
+
+/**
+ * Ensure default user exists (for backwards compatibility)
  */
 export async function ensureDefaultUser() {
   try {
