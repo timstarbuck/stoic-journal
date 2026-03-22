@@ -9,7 +9,7 @@ const PROTECTED_ROUTES = [
   '/morning',
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Skip auth check for API routes - let them handle auth separately
