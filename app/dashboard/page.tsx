@@ -16,6 +16,14 @@ export default function Dashboard() {
   const [entries, setEntries] = useState<GroupedEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedEntries, setExpandedEntries] = useState<Record<string, boolean>>({});
+
+  const toggleEntry = (id: string) => {
+    setExpandedEntries((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   useEffect(() => {
     const loadEntries = async () => {
@@ -135,23 +143,35 @@ export default function Dashboard() {
                   {group.date}
                 </h3>
                 <div className="space-y-3">
-                  {group.entries.map((entry) => (
-                    <Card key={entry.id} className="border-0 shadow hover:shadow-md transition-shadow">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start justify-between mb-2">
-                          <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                            {entry.type === "morning" ? "🌅 Morning" : "🌙 Evening"}
-                          </span>
-                          <span className="text-xs text-slate-500 dark:text-slate-400">
-                            {entry.createdAt.toLocaleTimeString()}
-                          </span>
-                        </div>
-                        <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap line-clamp-3">
-                          {entry.content}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {group.entries.map((entry) => {
+                    const entryId = entry.id.toString();
+                    const isExpanded = expandedEntries[entryId];
+
+                    return (
+                      <Card key={entry.id} className="border-0 shadow hover:shadow-md transition-shadow">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start justify-between mb-2">
+                            <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                              {entry.type === "morning" ? "🌅 Morning" : "🌙 Evening"}
+                            </span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              {entry.createdAt.toLocaleTimeString()}
+                            </span>
+                          </div>
+                          <p className={`text-slate-700 dark:text-slate-300 whitespace-pre-wrap ${isExpanded ? "" : "line-clamp-3"}`}>
+                            {entry.content}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => toggleEntry(entryId)}
+                            className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                          >
+                            {isExpanded ? "Show less" : "Show more"}
+                          </button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             ))}
