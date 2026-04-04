@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getRandomQuote, saveJournalEntry, ensureAuthenticatedUser } from '@/app/actions';
+import {
+  getRandomQuote,
+  saveJournalEntry,
+  ensureAuthenticatedUser,
+} from '@/app/actions';
 import type { StoicQuote } from '@/db/schema';
 
 export interface UseReflectionReturn {
@@ -13,7 +17,9 @@ export interface UseReflectionReturn {
   handleSave: () => Promise<void>;
 }
 
-export function useReflection(reflectionType: 'morning' | 'evening'): UseReflectionReturn {
+export function useReflection(
+  reflectionType: 'morning' | 'evening'
+): UseReflectionReturn {
   const [quote, setQuote] = useState<StoicQuote | null>(null);
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
