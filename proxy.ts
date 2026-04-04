@@ -2,12 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/server';
 
 // Protected routes that require authentication
-const PROTECTED_ROUTES = [
-  '/account',
-  '/dashboard',
-  '/evening',
-  '/morning',
-];
+const PROTECTED_ROUTES = ['/account', '/dashboard', '/evening', '/morning'];
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -41,4 +36,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
-

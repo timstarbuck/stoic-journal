@@ -1,13 +1,11 @@
-"use server";
+'use server';
 
+import { db } from '@/db';
+import { stoicQuotesTable, journalEntriesTable, usersTable } from '@/db/schema';
+import { eq, sql, desc, lt } from 'drizzle-orm';
+import { auth } from '@/lib/auth/server';
 
-import { db } from "@/db";
-import { stoicQuotesTable, journalEntriesTable, usersTable } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth/server";
-
-
-const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || "1";
+const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || '1';
 
 /**
  * Get the authenticated user's ID from Neon Auth session
@@ -19,7 +17,7 @@ async function getAuthenticatedUserId(): Promise<string> {
       return session.user.id;
     }
   } catch (error) {
-    console.warn("Failed to get authenticated user ID:", error);
+    console.warn('Failed to get authenticated user ID:', error);
   }
   // Fallback to default user ID if auth fails
   return DEFAULT_USER_ID;
@@ -28,7 +26,7 @@ async function getAuthenticatedUserId(): Promise<string> {
 /**
  * Get a random stoic quote by category
  */
-export async function getRandomQuote(category: "morning" | "evening") {
+export async function getRandomQuote(category: 'morning' | 'evening') {
   try {
     const quotes = await db
       .select()
@@ -41,8 +39,8 @@ export async function getRandomQuote(category: "morning" | "evening") {
     const idx = hashString(`${category}-${daySeed}`) % quotes.length;
     return quotes[idx] ?? quotes[0];
   } catch (error) {
-    console.error("Error fetching quote:", error);
-    throw new Error("Failed to fetch quote");
+    console.error('Error fetching quote:', error);
+    throw new Error('Failed to fetch quote');
   }
 }
 
@@ -50,7 +48,7 @@ export async function getRandomQuote(category: "morning" | "evening") {
  * Save a journal entry for the authenticated user
  */
 export async function saveJournalEntry(
-  type: "morning" | "evening",
+  type: 'morning' | 'evening',
   content: string
 ) {
   try {
@@ -65,44 +63,46 @@ export async function saveJournalEntry(
 
     return { success: true };
   } catch (error) {
-    console.error("Error saving journal entry:", error);
-    throw new Error("Failed to save journal entry");
+    console.error('Error saving journal entry:', error);
+    throw new Error('Failed to save journal entry');
   }
 }
 
 /**
  * Get all journal entries for the authenticated user, grouped by date
  */
-export async function getJournalEntries() {
+export async function getJournalEntries(cursor?: string, limit = 20) {
   try {
     const userId = await getAuthenticatedUserId();
 
-    const entries = await db
+    let query = db
       .select()
       .from(journalEntriesTable)
       .where(eq(journalEntriesTable.userId, userId as any))
-      .orderBy((t) => t.createdAt);
+      .orderBy((t) => desc(t.createdAt))
+      .limit(limit + 1);
 
-    // Group by date
-    const grouped = entries.reduce(
-      (acc, entry) => {
-        const dateKey = entry.createdAt.toLocaleDateString();
-        if (!acc[dateKey]) {
-          acc[dateKey] = [];
-        }
-        acc[dateKey].push(entry);
-        return acc;
-      },
-      {} as Record<string, typeof entries>
-    );
+    if (cursor) {
+      query = query.where(lt(journalEntriesTable.createdAt, new Date(cursor)));
+    }
 
-    return Object.entries(grouped).map(([date, items]) => ({
-      date,
-      entries: items,
-    }));
+    const results = await query;
+
+    // Check if there are more entries
+    const hasMore = results.length > limit;
+    const entries = results.slice(0, limit);
+    const nextCursor =
+      entries.length > 0
+        ? entries[entries.length - 1]?.createdAt.toISOString()
+        : undefined;
+
+    return {
+      entries,
+      nextCursor: hasMore ? nextCursor : undefined,
+    };
   } catch (error) {
-    console.error("Error fetching journal entries:", error);
-    throw new Error("Failed to fetch journal entries");
+    console.error('Error fetching journal entries:', error);
+    throw new Error('Failed to fetch journal entries');
   }
 }
 
@@ -112,11 +112,10 @@ export async function getJournalEntries() {
  */
 export async function ensureAuthenticatedUser() {
   try {
-
     const { data: session } = await auth.getSession();
 
     if (!session?.user) {
-      console.warn("No authenticated user found");
+      console.warn('No authenticated user found');
       return false;
     }
 
@@ -129,14 +128,14 @@ export async function ensureAuthenticatedUser() {
     if (existingUser.length === 0) {
       await db.insert(usersTable).values({
         id: userId as any,
-        name: session.user.name || session.user.email || "User",
+        name: session.user.name || session.user.email || 'User',
         email: session.user.email ?? null,
         createdAt: new Date(),
       });
     } else {
       // If the user exists but the email field is not set, populate it from the auth session
       const user = existingUser[0] as any;
-      if ((!user.email || user.email === "") && session.user.email) {
+      if ((!user.email || user.email === '') && session.user.email) {
         await db
           .update(usersTable)
           .set({ email: session.user.email })
@@ -146,7 +145,7 @@ export async function ensureAuthenticatedUser() {
 
     return true;
   } catch (error) {
-    console.error("Error ensuring authenticated user:", error);
+    console.error('Error ensuring authenticated user:', error);
     return false;
   }
 }
@@ -164,14 +163,14 @@ export async function ensureDefaultUser() {
     if (existingUser.length === 0) {
       await db.insert(usersTable).values({
         id: DEFAULT_USER_ID as any,
-        name: "Journal Keeper",
+        name: 'Journal Keeper',
         createdAt: new Date(),
       });
     }
 
     return true;
   } catch (error) {
-    console.error("Error ensuring default user:", error);
+    console.error('Error ensuring default user:', error);
     // Don't throw, as this might fail due to constraints
     return false;
   }

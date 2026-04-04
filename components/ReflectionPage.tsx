@@ -1,7 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -14,17 +20,36 @@ interface ReflectionPageProps {
   otherRouteLabel: string;
 }
 
-export function ReflectionPage({ theme, otherRouteLink, otherRouteLabel }: ReflectionPageProps) {
-  const { quote, content, loading, saving, error, success, setContent, handleSave } = useReflection(theme.type);
+export function ReflectionPage({
+  theme,
+  otherRouteLink,
+  otherRouteLabel,
+}: ReflectionPageProps) {
+  const {
+    quote,
+    content,
+    loading,
+    saving,
+    error,
+    success,
+    setContent,
+    handleSave,
+  } = useReflection(theme.type);
 
   const isOtherRouteMorning = otherRouteLabel === 'Morning Reflection';
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${theme.loadingBg} flex items-center justify-center p-4`}>
+      <div
+        className={`min-h-screen ${theme.loadingBg} flex items-center justify-center p-4`}
+      >
         <div className="text-center">
-          <div className={`inline-block animate-spin rounded-full h-8 w-8 ${theme.loadingSpinner}`}></div>
-          <p className={`mt-4 ${theme.type === 'morning' ? 'text-slate-600 dark:text-slate-300' : 'text-slate-300'}`}>
+          <div
+            className={`inline-block animate-spin rounded-full h-8 w-8 ${theme.loadingSpinner}`}
+          ></div>
+          <p
+            className={`mt-4 ${theme.type === 'morning' ? 'text-slate-600 dark:text-slate-300' : 'text-slate-300'}`}
+          >
             Loading your {theme.type} reflection...
           </p>
         </div>
@@ -43,10 +68,14 @@ export function ReflectionPage({ theme, otherRouteLink, otherRouteLabel }: Refle
 
         <Card className={theme.cardBg}>
           <CardHeader className={`${theme.headerGradient} rounded-t-lg`}>
-            <CardTitle className={`text-3xl text-center ${theme.type === 'morning' ? 'text-slate-900 dark:text-slate-50' : 'text-slate-50'}`}>
+            <CardTitle
+              className={`text-3xl text-center ${theme.type === 'morning' ? 'text-slate-900 dark:text-slate-50' : 'text-slate-50'}`}
+            >
               {theme.title}
             </CardTitle>
-            <CardDescription className={`text-center text-base mt-2 ${theme.type === 'morning' ? '' : 'text-slate-300'}`}>
+            <CardDescription
+              className={`text-center text-base mt-2 ${theme.type === 'morning' ? '' : 'text-slate-300'}`}
+            >
               {theme.subtitle}
             </CardDescription>
           </CardHeader>
@@ -65,11 +94,17 @@ export function ReflectionPage({ theme, otherRouteLink, otherRouteLabel }: Refle
             )}
 
             {quote && (
-              <div className={`mb-8 p-6 ${theme.quoteBackground} ${theme.quoteBorder} rounded`}>
-                <p className={`text-lg italic ${theme.type === 'morning' ? 'text-slate-700 dark:text-slate-300' : 'text-slate-100'} mb-3`}>
+              <div
+                className={`mb-8 p-6 ${theme.quoteBackground} ${theme.quoteBorder} rounded`}
+              >
+                <p
+                  className={`text-lg italic ${theme.type === 'morning' ? 'text-slate-700 dark:text-slate-300' : 'text-slate-100'} mb-3`}
+                >
                   "{quote.text}"
                 </p>
-                <p className={`text-sm ${theme.type === 'morning' ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400'}`}>
+                <p
+                  className={`text-sm ${theme.type === 'morning' ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400'}`}
+                >
                   — {quote.author}
                 </p>
               </div>
@@ -77,7 +112,10 @@ export function ReflectionPage({ theme, otherRouteLink, otherRouteLabel }: Refle
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="reflection" className={`text-base mb-3 block ${theme.type === 'morning' ? '' : 'text-slate-200'}`}>
+                <Label
+                  htmlFor="reflection"
+                  className={`text-base mb-3 block ${theme.type === 'morning' ? '' : 'text-slate-200'}`}
+                >
                   Your Reflection
                 </Label>
                 <Textarea
@@ -104,7 +142,9 @@ export function ReflectionPage({ theme, otherRouteLink, otherRouteLabel }: Refle
 
         <div className="mt-8 flex justify-center gap-4">
           <Link href={otherRouteLink} className={`text-sm ${theme.linkColors}`}>
-            {isOtherRouteMorning ? '← ' : ''}{otherRouteLabel}{!isOtherRouteMorning ? ' →' : ''}
+            {isOtherRouteMorning ? '← ' : ''}
+            {otherRouteLabel}
+            {!isOtherRouteMorning ? ' →' : ''}
           </Link>
         </div>
       </div>
