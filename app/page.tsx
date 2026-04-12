@@ -11,7 +11,7 @@ import ReasonsCarousel from '@/components/ReasonsCarousel';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <div className="max-w-5xl mx-auto px-4 py-12 md:py-20">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
@@ -83,6 +83,29 @@ export default function Home() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Call to Action */}
+        <div className="mt-20 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+            Ready to begin your journey?
+          </h2>
+          <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
+            Start your daily reflections today and discover the power of Stoic
+            wisdom.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth/sign-in">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/auth/sign-up">
+              <Button size="lg" className="w-full sm:w-auto">
+                Create Account
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
