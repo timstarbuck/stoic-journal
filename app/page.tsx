@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Link from 'next/link';
+import ReasonsCarousel from '@/components/ReasonsCarousel';
 
 export default function Home() {
   return (
@@ -26,56 +27,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* CTA Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <Link href="/morning" className="block">
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
-              <CardHeader className="bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30">
-                <CardTitle className="text-3xl">🌅</CardTitle>
-                <CardTitle className="text-2xl mt-2">
-                  Morning Reflection
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
-                  Start your day with a Stoic quote and set your intentions for
-                  what lies ahead.
-                </p>
-                <Button className="w-full bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white">
-                  Begin Morning Reflection
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/evening" className="block">
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full border-0 shadow-lg bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-900 dark:to-slate-950 text-slate-50">
-              <CardHeader className="bg-gradient-to-r from-indigo-900/40 to-blue-900/40">
-                <CardTitle className="text-3xl">🌙</CardTitle>
-                <CardTitle className="text-2xl mt-2">
-                  Evening Reflection
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <p className="text-slate-300 mb-6">
-                  Reflect on your day with philosophical wisdom and prepare for
-                  tomorrow.
-                </p>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white">
-                  Begin Evening Reflection
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-
-        <div className="text-center mb-12">
-          <Link href="/dashboard">
-            <Button variant="outline" size="lg" className="text-base px-8">
-              View Your Journal
-            </Button>
-          </Link>
-        </div>
+        <ReasonsCarousel />
 
         {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
