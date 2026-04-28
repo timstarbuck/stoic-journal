@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { stoicQuotesTable, journalEntriesTable, usersTable } from '@/db/schema';
 import { eq, sql, desc, lt } from 'drizzle-orm';
 import { auth } from '@/lib/auth/server';
+import { computeStreakFromDays } from '@/lib/utils';
 
 const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || '1';
 
@@ -173,6 +174,66 @@ export async function ensureDefaultUser() {
     console.error('Error ensuring default user:', error);
     // Don't throw, as this might fail due to constraints
     return false;
+  }
+}
+
+export async function getReflectionStats() {
+  try {
+    const userId = await getAuthenticatedUserId();
+
+    // Aggregate counts per type
+    const counts = await db
+      .select({ type: journalEntriesTable.type, count: sql`count(*)` })
+      .from(journalEntriesTable)
+      .where(eq(journalEntriesTable.userId, userId as any))
+      .groupBy(journalEntriesTable.type);
+
+    const morningCount = Number(
+      (counts.find((c: any) => c.type === 'morning') as any)?.count ?? 0
+    );
+    const eveningCount = Number(
+      (counts.find((c: any) => c.type === 'evening') as any)?.count ?? 0
+    );
+
+    // Helper to fetch distinct day strings (YYYY-MM-DD) for a given type
+    const getDaysForType = async (typeVal: 'morning' | 'evening') => {
+      const rows = await db
+        .select({ createdAt: journalEntriesTable.createdAt })
+        .from(journalEntriesTable)
+        .where(
+          sql`${eq(journalEntriesTable.userId, userId as any)} and ${eq(journalEntriesTable.type, typeVal)}`
+        )
+        .orderBy((t) => desc(t.createdAt))
+        .limit(365); // limit to a year for performance
+
+      const days = Array.from(
+        new Set(
+          rows.map((r: any) => new Date(r.createdAt).toISOString().slice(0, 10))
+        )
+      );
+      return days;
+    };
+
+    const morningDays = await getDaysForType('morning');
+    const eveningDays = await getDaysForType('evening');
+
+    // if the days array includes the current day,
+    // we want to count it as part of the streak, so we use today as the "now" parameter
+    // otherwise use yesterday to exclude today from the streak count
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const nowForMorning = morningDays.includes(todayStr)
+      ? new Date().getTime()
+      : new Date(new Date().getTime() - 24 * 60 * 60 * 1000).getTime();
+    const nowForEvening = eveningDays.includes(todayStr)
+      ? new Date().getTime()
+      : new Date(new Date().getTime() - 24 * 60 * 60 * 1000).getTime();
+    const morningStreak = computeStreakFromDays(morningDays, nowForMorning);
+    const eveningStreak = computeStreakFromDays(eveningDays, nowForEvening);
+
+    return { morningCount, eveningCount, morningStreak, eveningStreak };
+  } catch (error) {
+    console.error('Error computing reflection stats:', error);
+    throw new Error('Failed to compute reflection stats');
   }
 }
 

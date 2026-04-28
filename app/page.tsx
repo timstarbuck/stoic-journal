@@ -1,15 +1,14 @@
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import ReasonsCarousel from '@/components/ReasonsCarousel';
+import { auth } from '@/lib/auth/server';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
+export default async function Home() {
+  const { data: session } = await auth.getSession();
+  const isLoggedIn = !!session?.user;
+
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <div className="max-w-5xl mx-auto px-4 py-12 md:py-20">
@@ -70,7 +69,7 @@ export default function Home() {
 
         {/* Stoicism Section */}
         <div className="mt-16 text-center">
-          <Card className="border-0 shadow bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900">
+          <Card className="border-0 shadow bg-linear-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900">
             <CardContent className="pt-8 pb-8">
               <p className="text-lg italic text-slate-700 dark:text-slate-300 mb-4">
                 "The happiness of your life depends upon the quality of your
@@ -95,16 +94,30 @@ export default function Home() {
             wisdom.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/sign-in">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/auth/sign-up">
-              <Button size="lg" className="w-full sm:w-auto">
-                Create Account
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/sign-in">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/auth/sign-up">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Create Account
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

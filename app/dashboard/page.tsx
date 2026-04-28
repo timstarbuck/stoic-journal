@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ensureAuthenticatedUser } from '@/app/actions';
+import { ensureAuthenticatedUser, getReflectionStats } from '@/app/actions';
 import type { JournalEntry } from '@/db/schema';
 import Link from 'next/link';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
@@ -21,7 +21,28 @@ export default function Dashboard() {
     Record<string, boolean>
   >({});
   const [initialized, setInitialized] = useState(false);
+  const [stats, setStats] = useState<{
+    morningCount: number;
+    eveningCount: number;
+    morningStreak: number;
+    eveningStreak: number;
+  } | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!initialized) return;
+
+    const loadStats = async () => {
+      try {
+        const data = await getReflectionStats();
+        setStats(data);
+      } catch (err) {
+        console.error('Failed to load reflection stats:', err);
+      }
+    };
+
+    loadStats();
+  }, [initialized]);
 
   // Initialize auth on mount
   useEffect(() => {
@@ -132,7 +153,10 @@ export default function Dashboard() {
               <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
                 <CardTitle className="text-2xl">Morning Reflection</CardTitle>
                 <CardDescription>
-                  {morningEntries.length} entries
+                  {stats?.morningCount ?? morningEntries.length} entries
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    {stats ? `${stats.morningStreak}-day streak` : ''}
+                  </div>
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
@@ -151,7 +175,10 @@ export default function Dashboard() {
               <CardHeader className="bg-gradient-to-r from-indigo-900/40 to-blue-900/40">
                 <CardTitle className="text-2xl">Evening Reflection</CardTitle>
                 <CardDescription className="text-slate-300">
-                  {eveningEntries.length} entries
+                  {stats?.eveningCount ?? eveningEntries.length} entries
+                  <div className="text-sm text-slate-300 mt-1">
+                    {stats ? `${stats.eveningStreak}-day streak` : ''}
+                  </div>
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
