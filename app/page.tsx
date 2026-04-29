@@ -3,11 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import ReasonsCarousel from '@/components/ReasonsCarousel';
 import { auth } from '@/lib/auth/server';
-import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
+
+async function isUserLoggedIn() {
+  const { data: session } = await auth.getSession();
+  return !!session?.user;
+}
 
 export default async function Home() {
-  const { data: session } = await auth.getSession();
-  const isLoggedIn = !!session?.user;
+  //const { data: session } = await auth.getSession();
+  const isLoggedIn = await isUserLoggedIn();
 
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">

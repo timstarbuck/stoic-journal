@@ -76,16 +76,16 @@ export async function getJournalEntries(cursor?: string, limit = 20) {
   try {
     const userId = await getAuthenticatedUserId();
 
-    let query = db
-      .select()
-      .from(journalEntriesTable)
-      .where(eq(journalEntriesTable.userId, userId as any))
-      .orderBy((t) => desc(t.createdAt))
-      .limit(limit + 1);
+    // Use $dynamic() to allow chaining where after orderBy
+    let query = db.select().from(journalEntriesTable).$dynamic();
+
+    query = query.where(eq(journalEntriesTable.userId, userId as any));
 
     if (cursor) {
       query = query.where(lt(journalEntriesTable.createdAt, new Date(cursor)));
     }
+
+    query = query.orderBy((t) => desc(t.createdAt)).limit(limit + 1);
 
     const results = await query;
 
