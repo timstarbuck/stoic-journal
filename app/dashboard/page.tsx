@@ -1,62 +1,133 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getJournalEntries, ensureDefaultUser } from "@/app/actions";
-import type { JournalEntry } from "@/db/schema";
-import Link from "next/link";
-
-interface GroupedEntry {
-  date: string;
-  entries: JournalEntry[];
-}
+import { useEffect, useRef, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ensureAuthenticatedUser, getReflectionStats } from '@/app/actions';
+import type { JournalEntry } from '@/db/schema';
+import Link from 'next/link';
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 
 export default function Dashboard() {
-  const [entries, setEntries] = useState<GroupedEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { entries, isLoading, hasMore, error, loadMore } =
+    useInfiniteScroll(10);
+  const [expandedEntries, setExpandedEntries] = useState<
+    Record<string, boolean>
+  >({});
+  const [initialized, setInitialized] = useState(false);
+  const [stats, setStats] = useState<{
+    morningCount: number;
+    eveningCount: number;
+    morningStreak: number;
+    eveningStreak: number;
+  } | null>(null);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadEntries = async () => {
+    if (!initialized) return;
+
+    const loadStats = async () => {
       try {
-        // Ensure default user exists
-        await ensureDefaultUser();
-        
-        const allEntries = await getJournalEntries();
-        setEntries(allEntries.reverse()); // Show newest first
-        setLoading(false);
+        const data = await getReflectionStats();
+        setStats(data);
       } catch (err) {
-        setError("Failed to load journal entries");
-        setLoading(false);
+        console.error('Failed to load reflection stats:', err);
       }
     };
 
-    loadEntries();
+    loadStats();
+  }, [initialized]);
+
+  // Initialize auth on mount
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await ensureAuthenticatedUser();
+        setInitialized(true);
+      } catch (err) {
+        console.error('Failed to initialize:', err);
+      }
+    };
+    init();
   }, []);
 
-  if (loading) {
+  // Set up Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (!initialized || !observerTarget.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isLoading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, loadMore, initialized]);
+
+  const toggleEntry = (id: string) => {
+    setExpandedEntries((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  // Group entries by date on client-side
+  const groupedEntries = useMemo(() => {
+    const grouped: Record<string, JournalEntry[]> = {};
+    entries.forEach((entry) => {
+      const dateKey = entry.createdAt.toLocaleDateString();
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(entry);
+    });
+
+    return Object.entries(grouped)
+      .map(([date, items]) => ({
+        date,
+        entries: items,
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [entries]);
+
+  const morningEntries = useMemo(
+    () =>
+      groupedEntries.flatMap((g) =>
+        g.entries.filter((e) => e.type === 'morning')
+      ),
+    [groupedEntries]
+  );
+
+  const eveningEntries = useMemo(
+    () =>
+      groupedEntries.flatMap((g) =>
+        g.entries.filter((e) => e.type === 'evening')
+      ),
+    [groupedEntries]
+  );
+
+  if (!initialized) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 dark:border-slate-50"></div>
-          <p className="mt-4 text-slate-600 dark:text-slate-300">Loading your journal...</p>
+          <p className="mt-4 text-slate-600 dark:text-slate-300">
+            Loading your journal...
+          </p>
         </div>
       </div>
     );
   }
-
-  const morningEntries = entries.flatMap((group) =>
-    group.entries
-      .filter((e) => e.type === "morning")
-      .map((e) => ({ ...e, date: group.date }))
-  );
-
-  const eveningEntries = entries.flatMap((group) =>
-    group.entries
-      .filter((e) => e.type === "evening")
-      .map((e) => ({ ...e, date: group.date }))
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
@@ -81,7 +152,12 @@ export default function Dashboard() {
             <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full border-0 shadow">
               <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
                 <CardTitle className="text-2xl">Morning Reflection</CardTitle>
-                <CardDescription>{morningEntries.length} entries</CardDescription>
+                <CardDescription>
+                  {stats?.morningCount ?? morningEntries.length} entries
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    {stats ? `${stats.morningStreak}-day streak` : ''}
+                  </div>
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 <p className="text-slate-600 dark:text-slate-400">
@@ -98,7 +174,12 @@ export default function Dashboard() {
             <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full border-0 shadow bg-slate-800 dark:bg-slate-900 text-slate-50">
               <CardHeader className="bg-gradient-to-r from-indigo-900/40 to-blue-900/40">
                 <CardTitle className="text-2xl">Evening Reflection</CardTitle>
-                <CardDescription className="text-slate-300">{eveningEntries.length} entries</CardDescription>
+                <CardDescription className="text-slate-300">
+                  {stats?.eveningCount ?? eveningEntries.length} entries
+                  <div className="text-sm text-slate-300 mt-1">
+                    {stats ? `${stats.eveningStreak}-day streak` : ''}
+                  </div>
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 <p className="text-slate-400">
@@ -119,7 +200,8 @@ export default function Dashboard() {
                 You haven't written any reflections yet.
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-500 mb-6">
-                Start with a morning or evening reflection to begin your journaling journey.
+                Start with a morning or evening reflection to begin your
+                journaling journey.
               </p>
             </CardContent>
           </Card>
@@ -129,32 +211,71 @@ export default function Dashboard() {
               Your Entries
             </h2>
 
-            {entries.map((group) => (
+            {groupedEntries.map((group) => (
               <div key={group.date}>
                 <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-3 px-1">
                   {group.date}
                 </h3>
                 <div className="space-y-3">
-                  {group.entries.map((entry) => (
-                    <Card key={entry.id} className="border-0 shadow hover:shadow-md transition-shadow">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start justify-between mb-2">
-                          <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                            {entry.type === "morning" ? "🌅 Morning" : "🌙 Evening"}
-                          </span>
-                          <span className="text-xs text-slate-500 dark:text-slate-400">
-                            {entry.createdAt.toLocaleTimeString()}
-                          </span>
-                        </div>
-                        <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap line-clamp-3">
-                          {entry.content}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {group.entries.map((entry) => {
+                    const entryId = entry.id.toString();
+                    const isExpanded = expandedEntries[entryId];
+
+                    return (
+                      <Card
+                        key={entry.id}
+                        className="border-0 shadow hover:shadow-md transition-shadow"
+                      >
+                        <CardContent className="pt-6">
+                          <div className="flex items-start justify-between mb-2">
+                            <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                              {entry.type === 'morning'
+                                ? '🌅 Morning'
+                                : '🌙 Evening'}
+                            </span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              {entry.createdAt.toLocaleTimeString()}
+                            </span>
+                          </div>
+                          <p
+                            className={`text-slate-700 dark:text-slate-300 whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-3'}`}
+                          >
+                            {entry.content}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => toggleEntry(entryId)}
+                            className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                          >
+                            {isExpanded ? 'Show less' : 'Show more'}
+                          </button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             ))}
+
+            {/* Loading indicator and end state */}
+            <div
+              ref={observerTarget}
+              className="py-8 flex flex-col items-center justify-center"
+            >
+              {isLoading && (
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-slate-900 dark:border-slate-50 mb-3"></div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Loading more entries...
+                  </p>
+                </div>
+              )}
+              {!isLoading && !hasMore && entries.length > 0 && (
+                <p className="text-sm text-slate-500 dark:text-slate-500">
+                  No more entries
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -1,0 +1,6 @@
+{
+  "sarif-viewer.connectToGithubCodeScanning": "off",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "codeQL.githubDatabase.update": "never"
+}
