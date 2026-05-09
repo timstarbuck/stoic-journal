@@ -43,6 +43,10 @@ const runMigrations = async () => {
 
       -- Ensure existing installations get the new column when migrating
       ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+
+      -- Add new nullable fields to journal_entries for prompt and positive reflection
+      ALTER TABLE IF EXISTS journal_entries ADD COLUMN IF NOT EXISTS prompt_quote TEXT;
+      ALTER TABLE IF EXISTS journal_entries ADD COLUMN IF NOT EXISTS positive_reflection TEXT;
     `);
 
     console.log('✓ Tables created successfully');

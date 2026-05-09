@@ -50,15 +50,22 @@ export async function getRandomQuote(category: 'morning' | 'evening') {
  */
 export async function saveJournalEntry(
   type: 'morning' | 'evening',
-  content: string
+  payload: string | { content?: string; promptQuote?: string | null; positiveReflection?: string | null }
 ) {
   try {
     const userId = await getAuthenticatedUserId();
 
-    const result = await db.insert(journalEntriesTable).values({
+    // Support legacy callers that pass a string as the content
+    const contentValue = typeof payload === 'string' ? payload : payload.content ?? '';
+    const promptQuoteValue = typeof payload === 'string' ? null : payload.promptQuote ?? null;
+    const positiveReflectionValue = typeof payload === 'string' ? null : payload.positiveReflection ?? null;
+
+    await db.insert(journalEntriesTable).values({
       userId: userId as any,
       type,
-      content,
+      content: contentValue,
+      promptQuote: promptQuoteValue,
+      positiveReflection: positiveReflectionValue,
       createdAt: new Date(),
     });
 
