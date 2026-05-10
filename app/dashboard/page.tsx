@@ -237,18 +237,35 @@ export default function Dashboard() {
                               {entry.createdAt.toLocaleTimeString()}
                             </span>
                           </div>
-                          <p
-                            className={`text-slate-700 dark:text-slate-300 whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-3'}`}
-                          >
-                            {entry.content}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => toggleEntry(entryId)}
-                            className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
-                          >
-                            {isExpanded ? 'Show less' : 'Show more'}
-                          </button>
+                            {entry.promptQuote ? (
+                              <blockquote className="text-slate-500 italic mb-2" data-testid="prompt-quote">{entry.promptQuote}</blockquote>
+                            ) : null}
+
+                            {entry.positiveReflection ? (
+                              <div className="mb-2">
+                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                                  {entry.type === 'morning' ? 'What am I grateful for today' : 'What did I do well today'}
+                                </div>
+                                <p className="text-slate-700 dark:text-slate-300" data-testid="positive-reflection">{entry.positiveReflection}</p>
+                              </div>
+                            ) : null}
+
+                            <div>
+                              <div className="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                                {entry.type === 'morning' ? 'What is my intention for the day' : 'What could I have done better today'}
+                              </div>
+                              <p className={`text-slate-700 dark:text-slate-300 whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-3'}`} data-testid="content">
+                                {entry.content}
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => toggleEntry(entryId)}
+                              className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                            >
+                              {isExpanded ? 'Show less' : 'Show more'}
+                            </button>
                         </CardContent>
                       </Card>
                     );

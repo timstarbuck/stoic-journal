@@ -9,11 +9,13 @@ import type { StoicQuote } from '@/db/schema';
 export interface UseReflectionReturn {
   quote: StoicQuote | null;
   content: string;
+  positiveReflection: string;
   loading: boolean;
   saving: boolean;
   error: string | null;
   success: boolean;
   setContent: (content: string) => void;
+  setPositiveReflection: (val: string) => void;
   handleSave: () => Promise<void>;
 }
 
@@ -22,6 +24,7 @@ export function useReflection(
 ): UseReflectionReturn {
   const [quote, setQuote] = useState<StoicQuote | null>(null);
   const [content, setContent] = useState('');
+  const [positiveReflection, setPositiveReflection] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +36,9 @@ export function useReflection(
         await ensureAuthenticatedUser();
         const randomQuote = await getRandomQuote(reflectionType);
         setQuote(randomQuote);
-        if (randomQuote) {
-          setContent(`"${randomQuote.text}" \n— ${randomQuote.author}`);
-        }
+        // Do not prefill the main content with the quote anymore; store quote separately as promptQuote
+        setContent('');
+        setPositiveReflection('');
         setLoading(false);
       } catch (err) {
         console.log(err);
@@ -57,9 +60,14 @@ export function useReflection(
     setError(null);
 
     try {
-      await saveJournalEntry(reflectionType, content);
+      await saveJournalEntry(reflectionType, {
+        content,
+        positiveReflection: positiveReflection || null,
+        promptQuote: quote ? `${quote?.text} — ${quote.author}` : null,
+      });
       setSuccess(true);
       setContent('');
+      setPositiveReflection('');
 
       const newQuote = await getRandomQuote(reflectionType);
       setQuote(newQuote);
@@ -75,11 +83,13 @@ export function useReflection(
   return {
     quote,
     content,
+    positiveReflection,
     loading,
     saving,
     error,
     success,
     setContent,
+    setPositiveReflection,
     handleSave,
   };
 }

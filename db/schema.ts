@@ -28,6 +28,10 @@ export const journalEntriesTable = pgTable(
       length: 10,
       enum: ['morning', 'evening'],
     }).notNull(),
+    // New nullable fields introduced in 2026-05-09: prompt_quote and positive_reflection
+    promptQuote: text('prompt_quote'),
+    positiveReflection: text('positive_reflection'),
+    // Existing content field is preserved and repurposed; remain NOT NULL for compatibility
     content: text('content').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)

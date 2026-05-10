@@ -28,11 +28,13 @@ export function ReflectionPage({
   const {
     quote,
     content,
+    positiveReflection,
     loading,
     saving,
     error,
     success,
     setContent,
+    setPositiveReflection,
     handleSave,
   } = useReflection(theme.type);
 
@@ -113,10 +115,31 @@ export function ReflectionPage({
             <div className="space-y-4">
               <div>
                 <Label
+                  htmlFor="positive"
+                  className={`text-base mb-3 block ${theme.type === 'morning' ? '' : 'text-slate-200'}`}
+                >
+                  {theme.type === 'morning'
+                    ? 'What am I grateful for today'
+                    : 'What did I do well today'}
+                </Label>
+                <Textarea
+                  id="positive"
+                  placeholder={theme.placeholder}
+                  value={positiveReflection}
+                  onChange={(e) => setPositiveReflection(e.target.value)}
+                  className={theme.textareaClass}
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <Label
                   htmlFor="reflection"
                   className={`text-base mb-3 block ${theme.type === 'morning' ? '' : 'text-slate-200'}`}
                 >
-                  Your Reflection
+                  {theme.type === 'morning'
+                    ? 'What is my intention for the day'
+                    : 'What could I have done better today'}
                 </Label>
                 <Textarea
                   id="reflection"
@@ -124,6 +147,7 @@ export function ReflectionPage({
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className={theme.textareaClass}
+                  rows={4}
                 />
               </div>
 
