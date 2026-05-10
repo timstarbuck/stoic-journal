@@ -63,7 +63,7 @@ export function useReflection(
       await saveJournalEntry(reflectionType, {
         content,
         positiveReflection: positiveReflection || null,
-        promptQuote: quote?.text ?? null,
+        promptQuote: quote ? `${quote?.text} — ${quote.author}` : null,
       });
       setSuccess(true);
       setContent('');
