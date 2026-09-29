@@ -124,7 +124,11 @@ export function ReflectionPage({
                 </Label>
                 <Textarea
                   id="positive"
-                  placeholder={theme.placeholder}
+                  placeholder={
+                    theme.type === 'morning'
+                      ? 'I am grateful for...'
+                      : 'I did well by...'
+                  }
                   value={positiveReflection}
                   onChange={(e) => setPositiveReflection(e.target.value)}
                   className={theme.textareaClass}
