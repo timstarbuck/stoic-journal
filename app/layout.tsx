@@ -14,11 +14,45 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Stoic Journal - Daily Reflections',
+  applicationName: 'Stoic Journal',
+  title: {
+    default: 'Stoic Journal | Daily Stoic Reflection',
+    template: '%s | Stoic Journal',
+  },
   description:
-    'A minimal journaling app guided by timeless Stoic wisdom. Begin your day with inspiration and end it with reflection.',
-  keywords: ['journal', 'stoicism', 'reflection', 'daily', 'writing'],
-  authors: [{ name: 'Stoic Journal' }],
+    'Build a daily journaling practice with morning and evening reflections guided by Stoic wisdom from Marcus Aurelius, Seneca, and Epictetus.',
+  keywords: [
+    'Stoic journal',
+    'Stoicism',
+    'daily reflection',
+    'morning journal',
+    'evening journal',
+    'Marcus Aurelius',
+    'Seneca',
+    'Epictetus',
+    'self-reflection',
+  ],
+  authors: [{ name: 'Tim Starbuck' }],
+  creator: 'Tim Starbuck',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Stoic Journal',
+    title: 'Stoic Journal | Daily Stoic Reflection',
+    description:
+      'Build a daily journaling practice with morning and evening reflections guided by timeless Stoic wisdom.',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Stoic Journal | Daily Stoic Reflection',
+    description:
+      'Build a daily journaling practice with morning and evening reflections guided by timeless Stoic wisdom.',
+  },
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
   icons: {
     icon: [
       { url: '/icon-32x32.png', sizes: '32x32', type: 'image/png' },
