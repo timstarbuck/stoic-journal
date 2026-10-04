@@ -25,19 +25,23 @@ async function getAuthenticatedUserId(): Promise<string> {
 }
 
 /**
- * Get a random stoic quote by category
+ * Get the quote shared by the morning and evening reflections for today.
  */
-export async function getRandomQuote(category: 'morning' | 'evening') {
+export async function getRandomQuote() {
   try {
-    const quotes = await db
-      .select()
-      .from(stoicQuotesTable)
-      .where(eq(stoicQuotesTable.category, category));
+    const quotes = await db.select().from(stoicQuotesTable);
 
     if (quotes.length === 0) return null;
 
+    quotes.sort(
+      (a, b) =>
+        a.text.localeCompare(b.text) ||
+        a.author.localeCompare(b.author) ||
+        a.id.localeCompare(b.id)
+    );
+
     const daySeed = computeDaySeed();
-    const idx = hashString(`${category}-${daySeed}`) % quotes.length;
+    const idx = hashString(String(daySeed)) % quotes.length;
     return quotes[idx] ?? quotes[0];
   } catch (error) {
     console.error('Error fetching quote:', error);
