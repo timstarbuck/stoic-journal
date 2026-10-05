@@ -27,7 +27,7 @@
     "clsx": "^2.0.0",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
-    "next": "16.1.6",
+    "next": "16.3.6",
     "pg": "^8.11.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -45,12 +45,15 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "16.3.6",
     "jsdom": "^29.0.2",
     "prettier": "^3.8.1",
     "tailwindcss": "^4",
     "tsx": "^4.7.0",
     "typescript": "^5",
     "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "better-auth": "1.7.6"
   }
 }

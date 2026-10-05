@@ -95,23 +95,6 @@ export function ReflectionPage({
               </div>
             )}
 
-            {quote && (
-              <div
-                className={`mb-8 p-6 ${theme.quoteBackground} ${theme.quoteBorder} rounded`}
-              >
-                <p
-                  className={`text-lg italic ${theme.type === 'morning' ? 'text-slate-700 dark:text-slate-300' : 'text-slate-100'} mb-3`}
-                >
-                  "{quote.text}"
-                </p>
-                <p
-                  className={`text-sm ${theme.type === 'morning' ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400'}`}
-                >
-                  — {quote.author}
-                </p>
-              </div>
-            )}
-
             <div className="space-y-4">
               <div>
                 <Label
@@ -135,6 +118,23 @@ export function ReflectionPage({
                   rows={4}
                 />
               </div>
+
+              {quote && (
+                <div
+                  className={`mb-8 p-6 ${theme.quoteBackground} ${theme.quoteBorder} rounded`}
+                >
+                  <p
+                    className={`text-lg italic ${theme.type === 'morning' ? 'text-slate-700 dark:text-slate-300' : 'text-slate-100'} mb-3`}
+                  >
+                    &ldquo;{quote.text}&rdquo;
+                  </p>
+                  <p
+                    className={`text-sm ${theme.type === 'morning' ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400'}`}
+                  >
+                    — {quote.author}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <Label

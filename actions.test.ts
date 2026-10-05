@@ -82,4 +82,39 @@ describe('app actions', () => {
     expect(res.entries).toBeDefined();
     expect(Array.isArray(res.entries)).toBe(true);
   });
+
+  it('getRandomQuote returns the same daily quote regardless of row order', async () => {
+    const quotes = [
+      {
+        id: '2',
+        text: 'A shared quote',
+        author: 'Stoic',
+        category: 'evening',
+      },
+      {
+        id: '1',
+        text: 'Another shared quote',
+        author: 'Stoic',
+        category: 'morning',
+      },
+    ];
+    let reverseOrder = false;
+
+    (db as any).select.mockImplementation(() => ({
+      from: () => ({
+        then(resolve: (value: typeof quotes) => unknown) {
+          return Promise.resolve(
+            reverseOrder ? [...quotes].reverse() : quotes
+          ).then(resolve);
+        },
+      }),
+    }));
+
+    const firstQuote = await actions.getRandomQuote();
+    reverseOrder = true;
+    const secondQuote = await actions.getRandomQuote();
+
+    expect(firstQuote).toEqual(secondQuote);
+    expect(quotes).toContainEqual(firstQuote);
+  });
 });

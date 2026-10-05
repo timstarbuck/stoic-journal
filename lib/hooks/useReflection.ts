@@ -34,7 +34,7 @@ export function useReflection(
     const initPage = async () => {
       try {
         await ensureAuthenticatedUser();
-        const randomQuote = await getRandomQuote(reflectionType);
+        const randomQuote = await getRandomQuote();
         setQuote(randomQuote);
         // Do not prefill the main content with the quote anymore; store quote separately as promptQuote
         setContent('');
@@ -69,7 +69,7 @@ export function useReflection(
       setContent('');
       setPositiveReflection('');
 
-      const newQuote = await getRandomQuote(reflectionType);
+      const newQuote = await getRandomQuote();
       setQuote(newQuote);
 
       setTimeout(() => setSuccess(false), 3000);
